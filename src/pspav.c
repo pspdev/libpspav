@@ -18,6 +18,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <strings.h>
+#include <vram.h>
 
 #include "pspav.h"
 #include "pspav_common.h"
@@ -241,7 +242,7 @@ error:
 
 void pspavInit(sceMpegRingbufferCB RingbufferCallback) {
 
-    m_RingbufferPackets = 0x3C0;
+    m_RingbufferPackets = 60; //0x3C0;
 
     int status = 0;
     status |= sceUtilityLoadModule(PSP_MODULE_AV_ATRAC3PLUS);
@@ -254,9 +255,9 @@ void pspavInit(sceMpegRingbufferCB RingbufferCallback) {
     res = sceMpegInit();
     //printf("sceMpegInit: %p\n", res);
     m_RingbufferSize = sceMpegRingbufferQueryMemSize(m_RingbufferPackets);
-    
+
     m_MpegMemSize    = sceMpegQueryMemSize(0);
-    m_RingbufferData = malloc(m_RingbufferSize);
+    m_RingbufferData = valloc(m_RingbufferSize);
     m_MpegMemData    = malloc(m_MpegMemSize);
     res = sceMpegRingbufferConstruct(&m_Ringbuffer, m_RingbufferPackets, m_RingbufferData, m_RingbufferSize, RingbufferCallback, MPEGdata);
     //printf("sceMpegRingbufferConstruct: %p\n", res);
@@ -364,7 +365,7 @@ SceVoid pspavShutdown()
     sceUtilityUnloadModule(PSP_MODULE_AV_ATRAC3PLUS);
     
     if (m_pEsBufferAtrac  != NULL) free(m_pEsBufferAtrac);
-    if (m_RingbufferData  != NULL) free(m_RingbufferData); // This crashes....double free or corruption?
+    if (m_RingbufferData  != NULL) vfree(m_RingbufferData); // This crashes....double free or corruption?
     if (m_MpegMemData     != NULL) free(m_MpegMemData);
     
 }
