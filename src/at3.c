@@ -15,9 +15,6 @@
 #define BUFFER_NUM             (3)
 #define WRITEBUF_SIZE          (BUFFER_NUM  * (MAX_SAMPLE))
 
-int sceAtracGetSecondBufferInfo(int atracID, u32 *puiPosition, u32 *puiDataByte);
-int sceAtracGetNextDecodePosition(int atracID, u32 *puiSamplePosition);
-
 static int* decode_data;
 
 static int* abortT = NULL;
@@ -40,7 +37,8 @@ void pspavSetAt3Data(char* data, int size, int* abortVar, int delay){
     threadDelay = delay;
 }
 
-unsigned getAT3Frequency(){
+unsigned pspavGetAT3Frequency(){
+    if (!at3_data) return 0;
     unsigned frequency = *(int*)(at3_data+0x18);
     if (frequency != 48000 && frequency != 44100)
         frequency = 44100;
@@ -78,7 +76,7 @@ int pspavPlayAT3(SceSize argc, void* argv) {
     sceAtracGetMaxSample(atracID, &max_samples);
 
     sceAudioSRCChRelease(); // release the channel if it's already taken
-    channel = sceAudioSRCChReserve(max_samples, getAT3Frequency(), 2); // reserve the channel
+    channel = sceAudioSRCChReserve(max_samples, pspavGetAT3Frequency(), 2); // reserve the channel
     
     int end = 0;
     while (!end && !*abortT) {

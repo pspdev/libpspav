@@ -7,6 +7,7 @@ extern "C" {
 
 void pspavSetAt3Data(char* data, int size, int* abortVar, int delay);
 void pspavResetAt3Data();
+unsigned pspavGetAT3Frequency();
 int pspavPlayAT3(SceSize argc, void* argv);
 
 #ifdef __cplusplus
