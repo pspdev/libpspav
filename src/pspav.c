@@ -213,7 +213,7 @@ SceInt32 ParseHeader()
 
     retVal = sceMpegQueryStreamOffset(&m_Mpeg, pHeader, &m_MpegStreamOffset);
     if (retVal != 0)
-    {PSPAV_PadState
+    {
         m_MpegStreamOffset = 0;
         //printf("sceMpegQueryStreamOffset: %p\n", retVal);
         m_iLastTimeStamp = -1;
@@ -240,7 +240,7 @@ error:
 }
 
 
-void pspavInit(sceMpegRingbufferCB RingbufferCallback) {
+int pspavInit(sceMpegRingbufferCB RingbufferCallback) {
 
     m_RingbufferPackets = 60; //0x3C0;
 
@@ -250,24 +250,30 @@ void pspavInit(sceMpegRingbufferCB RingbufferCallback) {
     status |= sceUtilityLoadModule(PSP_MODULE_AV_VAUDIO);
     status |= sceUtilityLoadModule(PSP_MODULE_AV_AAC);
     
-    int res;
+    int res = 0;
 
     res = sceMpegInit();
     //printf("sceMpegInit: %p\n", res);
-    m_RingbufferSize = sceMpegRingbufferQueryMemSize(m_RingbufferPackets);
+    if (res < 0) return res;
 
+    m_RingbufferSize = sceMpegRingbufferQueryMemSize(m_RingbufferPackets);
     m_MpegMemSize    = sceMpegQueryMemSize(0);
     m_RingbufferData = valloc(m_RingbufferSize);
     m_MpegMemData    = malloc(m_MpegMemSize);
+
     res = sceMpegRingbufferConstruct(&m_Ringbuffer, m_RingbufferPackets, m_RingbufferData, m_RingbufferSize, RingbufferCallback, MPEGdata);
     //printf("sceMpegRingbufferConstruct: %p\n", res);
+    if (res < 0) return res;
+    
     res = sceMpegCreate(&m_Mpeg, m_MpegMemData, m_MpegMemSize, &m_Ringbuffer, BUFFER_WIDTH, 0, 0);
     //printf("sceMpegCreate: %p\n", res);
+    if (res < 0) return res;
 
     m_MpegAvcMode.iUnk0 = -1;
     m_MpegAvcMode.iPixelFormat = 3;
     res = sceMpegAvcDecodeMode(&m_Mpeg, &m_MpegAvcMode);
     //printf("sceMpegAvcDecodeMode: %p\n", res);
+    return res;
 }
 
 void pspavLoad() {

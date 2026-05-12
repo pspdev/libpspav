@@ -127,7 +127,10 @@ void pspavPlayMP3File(char* filename, void* buffer, int buffer_size)
     }
 
     int file_handle = -1;
-    int mp3_handle;
+    int mp3_handle = -1;
+    int channel = -1;
+    unsigned char* mp3Buf = NULL;
+    unsigned char* pcmBuf = NULL;
 
     int status;
 
@@ -141,20 +144,20 @@ void pspavPlayMP3File(char* filename, void* buffer, int buffer_size)
         }
     }
 
-    status = sceMp3InitResource();
-    if(status < 0) {
-        running = false;
-        return;
-    }
-
     // load the needed utilities if not done already
     int mod_loaded1 = sceUtilityLoadModule(PSP_MODULE_AV_AVCODEC);
     int mod_loaded2 = sceUtilityLoadModule(PSP_MODULE_AV_MP3);
 
+    status = sceMp3InitResource();
+    if(status < 0) {
+        goto mp3_terminate;
+        return;
+    }
+
     // Reserve a mp3 handle for our playback
     SceMp3InitArg mp3Init;
-    unsigned char* mp3Buf = (unsigned char*)memalign(64, MP3BUF_SIZE);
-    unsigned char* pcmBuf = (unsigned char*)memalign(64, PCMBUF_SIZE);
+    mp3Buf = (unsigned char*)memalign(64, MP3BUF_SIZE);
+    pcmBuf = (unsigned char*)memalign(64, PCMBUF_SIZE);
     memset(mp3Buf, 0, MP3BUF_SIZE);
     memset(pcmBuf, 0, PCMBUF_SIZE);
     memset(&mp3Init, 0, sizeof(mp3Init));
@@ -165,7 +168,6 @@ void pspavPlayMP3File(char* filename, void* buffer, int buffer_size)
     mp3Init.pcmBuf = pcmBuf;
     mp3Init.pcmBufSize = PCMBUF_SIZE;
 
-    int channel = -1;
     int samplingRate, numChannels, max_sample;
 
     mp3_handle = sceMp3ReserveMp3Handle( &mp3Init );
@@ -238,9 +240,9 @@ void pspavPlayMP3File(char* filename, void* buffer, int buffer_size)
         }
     }
 
-    status = sceMp3ReleaseMp3Handle( mp3_handle );
+    if (mp3_handle >= 0) sceMp3ReleaseMp3Handle( mp3_handle );
 
-    status = sceMp3TermResource();
+    sceMp3TermResource();
 
     if (mod_loaded2>=0) sceUtilityUnloadModule(PSP_MODULE_AV_MP3);
     if (mod_loaded1>=0) sceUtilityUnloadModule(PSP_MODULE_AV_AVCODEC);
@@ -248,8 +250,6 @@ void pspavPlayMP3File(char* filename, void* buffer, int buffer_size)
     if (file_handle >= 0)
         status = sceIoClose( file_handle );
 
-    file_handle = -1;
-    mp3_handle = -1;
     running = false;
     free(mp3Buf);
     free(pcmBuf);
