@@ -147,6 +147,9 @@ void pspavPlayMP3File(char* filename, void* buffer, int buffer_size)
         return;
     }
 
+    // load the needed utilities if not done already
+    int mod_loaded1 = sceUtilityLoadModule(PSP_MODULE_AV_AVCODEC);
+    int mod_loaded2 = sceUtilityLoadModule(PSP_MODULE_AV_MP3);
 
     // Reserve a mp3 handle for our playback
     SceMp3InitArg mp3Init;
@@ -238,6 +241,9 @@ void pspavPlayMP3File(char* filename, void* buffer, int buffer_size)
     status = sceMp3ReleaseMp3Handle( mp3_handle );
 
     status = sceMp3TermResource();
+
+    if (mod_loaded2>=0) sceUtilityUnloadModule(PSP_MODULE_AV_MP3);
+    if (mod_loaded1>=0) sceUtilityUnloadModule(PSP_MODULE_AV_AVCODEC);
 
     if (file_handle >= 0)
         status = sceIoClose( file_handle );

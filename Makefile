@@ -3,7 +3,8 @@ TARGET_LIB=libpspav.a
 C_OBJS = \
 	src/at3.o \
 	src/mp3.o  \
-	src/pspav.o \
+	src/jpeg.o  \
+	src/pspav.o  \
 	src/pspav_audio.o \
 	src/pspav_video.o  \
 	src/pspav_reader.o  \

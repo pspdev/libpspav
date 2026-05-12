@@ -65,8 +65,8 @@ int pspavPlayAT3(SceSize argc, void* argv) {
     int channel;
 
     // load the needed utilities if not done already
-    sceUtilityLoadModule(PSP_MODULE_AV_AVCODEC);
-    sceUtilityLoadModule(PSP_MODULE_AV_ATRAC3PLUS);
+    int mod_loaded1 = sceUtilityLoadModule(PSP_MODULE_AV_AVCODEC);
+    int mod_loaded2 = sceUtilityLoadModule(PSP_MODULE_AV_ATRAC3PLUS);
     
     // set the atrac3 data and its size
     atracID = sceAtracSetDataAndGetID(at3_data, at3_size);
@@ -110,6 +110,9 @@ int pspavPlayAT3(SceSize argc, void* argv) {
     sceAudioSRCChRelease();
     sceAtracReleaseAtracID(atracID);
     free(decode_data);
+
+    if (mod_loaded2>=0) sceUtilityUnloadModule(PSP_MODULE_AV_ATRAC3PLUS);
+    if (mod_loaded1>=0) sceUtilityUnloadModule(PSP_MODULE_AV_AVCODEC);
 
     return 0;
 }
